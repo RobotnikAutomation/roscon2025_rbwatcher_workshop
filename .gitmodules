@@ -1,0 +1,21 @@
+[submodule "src/robotnik_common"]
+	path = src/robotnik_common
+	url = https://github.com/RobotnikAutomation/robotnik_common.git
+[submodule "src/robotnik_description"]
+	path = src/robotnik_description
+	url = https://github.com/RobotnikAutomation/robotnik_description.git
+[submodule "src/robotnik_interfaces"]
+	path = src/robotnik_interfaces
+	url = https://github.com/RobotnikAutomation/robotnik_interfaces.git
+[submodule "src/robotnik_sensors"]
+	path = src/robotnik_sensors
+	url = https://github.com/RobotnikAutomation/robotnik_sensors.git
+[submodule "src/robotnik_simulation"]
+	path = src/robotnik_simulation
+	url = https://github.com/RobotnikAutomation/robotnik_simulation.git
+[submodule "src/robotnik_gazebo_worlds"]
+	path = src/robotnik_gazebo_worlds
+	url = https://github.com/RobotnikAutomation/robotnik_gazebo_worlds.git
+[submodule "src/visualization_tutorials"]
+	path = src/visualization_tutorials
+	url = https://github.com/ros-visualization/visualization_tutorials.git
