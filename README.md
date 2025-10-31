@@ -199,11 +199,38 @@ ros2 run nav2_map_server map_saver_cli -f ~/map
 
 ## TASK 5: Localization & Navigation
 
+### Localization
+
 We can localize the robot using the `amcl` package:
 
 ```
 ros2 launch robotnik_simulation_localization localization.launch.py
 ```
+![rviz-localization](docs/localization.png)
+
+Set the initial pose of the robot using the `2D Pose Estimate` tool in RViz.
+
+Move around the robot using teleoperation to verify the localization is working properly.
+
+### Navigation
+
+We can navigate the robot using the `nav2` stack:
+
+```
+ros2 launch robotnik_simulation_navigation navigation.launch.py
+```
+
+![rviz-navigation](docs/navigation.png)
+
+
+Send navigation goals using the `2D Nav Goal` tool in RViz.
+
+![rviz-nav-goal](docs/navigation-goal.png)
+
+Create and navigate through multiple waypoints by using the `nav2_waypoint_follower` package:
+
+![rviz-waypoints](docs/nav2-waypoints.png)
+
 
 ## Bringup all
 
