@@ -19,3 +19,12 @@
 [submodule "src/visualization_tutorials"]
 	path = src/visualization_tutorials
 	url = https://github.com/ros-visualization/visualization_tutorials.git
+[submodule "src/simple_person_detector"]
+	path = src/simple_person_detector
+	url = https://github.com/RomanRobotnik/simple_person_detector.git
+[submodule "src/ptz_tracker_interfaces"]
+	path = src/ptz_tracker_interfaces
+	url = https://github.com/RomanRobotnik/ptz_tracker_interfaces.git
+[submodule "src/ptz_tracker"]
+	path = src/ptz_tracker
+	url = https://github.com/RomanRobotnik/ptz_tracker.git
