@@ -231,6 +231,41 @@ Create and navigate through multiple waypoints by using the `nav2_waypoint_follo
 
 ![rviz-waypoints](docs/nav2-waypoints.png)
 
+## TASK 6: Perception
+
+We will use a simple script to detect persons in the RGB camera feed by using OpenCV. See the package `simple_person_detector` for more details.
+
+```
+ros2 launch simple_person_detector simple_person_detector.launch.py
+``` 
+
+![person-detector](docs/person-detection.png)
+
+The detection status is published as a boolean topic as a `std_msgs/Bool` message and also the bounding boxes are published as `vision_msgs/Detection2DArray` message.
+
+```
+ros2 topic echo /person_detector/detected
+ros2 topic echo /person_detector/detection_array
+```
+
+## TASK 7: Person (detection) tracking
+
+We will use a simple script to track persons detected in the previous task by using the PTZ camera. See the package `ptz_tracker` for more details.
+
+
+```
+ros2 launch ptz_tracker ptz_tracker.launch.py
+```
+
+This node serves an action server that triggers the PTZ camera to follow the detected person.
+
+```
+ros2 action send_goal /ptz_tracker/start_tracking ptz_tracker_interfaces/action/TrackTarget "{start: true}"
+```
+
+It follows the person by moving the PTZ camera to keep the detected person in the center of the image until we cancel the action or the person is lost.
+
+
 
 ## Bringup all
 
