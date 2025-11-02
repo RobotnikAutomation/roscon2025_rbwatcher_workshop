@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>rbwatcher_workshop_bringup</name>
+  <version>0.1.0</version>
+  <description>Bringup launch and configuration files for the RB-Watcher workshop simulation.</description>
+
+  <maintainer email="support@robotnik.es">Robotnik Automation</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>robotnik_gazebo_ignition</exec_depend>
+  <exec_depend>robotnik_simulation_bringup</exec_depend>
+  <exec_depend>robotnik_simulation_navigation</exec_depend>
+  <exec_depend>rbwatcher_behaviors</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
