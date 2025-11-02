@@ -28,3 +28,6 @@
 [submodule "src/ptz_tracker"]
 	path = src/ptz_tracker
 	url = https://github.com/RomanRobotnik/ptz_tracker.git
+[submodule "src/rbwatcher_behaviors"]
+	path = src/rbwatcher_behaviors
+	url = https://github.com/RomanRobotnik/rbwatcher_behaviors.git
