@@ -1,27 +1,60 @@
 # roscon2025_rbwatcher_workshop
 
-RB-Watcher ROS2 digital twin in an electrical substation for autonomous inspection using the Nav2 stack.
+RB-Watcher ROS 2 digital twin for autonomous inspection at an electrical substation. The project combines Gazebo Harmonic simulation, the Nav2 navigation stack, and BehaviorTree.CPP to demonstrate guided patrol and reactive PTZ tracking workflows.
 
-![gz-view](docs/gz-view.png)
+![Gazebo overview](docs/gz-view.png)
 
-## Installation
+---
 
+## Table of Contents
 
-This section assumes that you have ROS 2 Jazzy and Gazebo Harmonic installed on Ubuntu 24.04.
+1. [Overview](#overview)
+2. [Requirements](#requirements)
+3. [Workspace Setup](#workspace-setup)
+4. [Build Instructions](#build-instructions)
+5. [Behavior Tree Tooling](#behavior-tree-tooling)
+6. [Workshop Tasks](#workshop-tasks)
+   - [Task 1 – Launch the Simulation](#task-1--launch-the-simulation)
+   - [Task 2 – Controllers and Sensors](#task-2--controllers-and-sensors)
+   - [Task 3 – Basic Control](#task-3--basic-control)
+   - [Task 4 – Mapping](#task-4--mapping)
+   - [Task 5 – Localization & Navigation](#task-5--localization--navigation)
+   - [Task 6 – Perception](#task-6--perception)
+   - [Task 7 – PTZ Person Tracking](#task-7--ptz-person-tracking)
+   - [Task 8 – Autonomous Inspection with Behavior Trees](#task-8--autonomous-inspection-with-behavior-trees)
+7. [Bringup Shortcuts](#bringup-shortcuts)
 
-Create workspace
-```
+---
+
+## Overview
+
+The RB-Watcher is a mobile platform designed for persistent inspection and surveillance missions. This workshop package provides:
+
+- A Gazebo Harmonic simulation of the RB-Watcher operating in an electrical substation.
+- Launch and configuration assets to exercise Nav2, perception, and PTZ tracking components.
+- A BehaviorTree.CPP action server (`rbwatcher_behaviors`) showcasing patrol-and-track missions using custom tree nodes.
+
+---
+
+## Requirements
+
+- Ubuntu 24.04 with ROS 2 Jazzy and Gazebo Harmonic pre-installed.
+- Desktop-class GPU recommended for running the Gazebo world and RViz simultaneously.
+- Basic familiarity with ROS 2 CLI tools and the `colcon` build system.
+
+---
+
+## Workspace Setup
+
+```bash
 mkdir -p ~/workspaces/roscon_ws/src
-```
-
-Clone repository
-```
 cd ~/workspaces/roscon_ws/src
 git clone --recurse-submodules -b jazzy-devel https://github.com/RobotnikAutomation/robot_packages.git
 ```
 
-Install dependencies
-```
+Install system dependencies and resolve ROS package requirements:
+
+```bash
 cd ~/workspaces/roscon_ws
 sudo apt-get update
 rosdep update
@@ -29,236 +62,207 @@ rosdep install --from-paths src --ignore-src -r -y
 sudo apt install -y $(find -name '*ros-jazzy-robotnik*.deb')
 ```
 
+---
 
-Build the packages:
-```
+## Build Instructions
+
+```bash
 cd ~/workspaces/roscon_ws
 colcon build --symlink-install
 source install/setup.bash
 ```
 
-### Groot
+Re-source `install/setup.bash` in new terminals or add it to your shell profile.
 
-In order to visualize and edit Behavior Trees, we will use Groot2.
+---
 
-Download [Groot2](https://www.behaviortree.dev/groot/) AppImage(Linux) in `~/Downloads` folder
+## Behavior Tree Tooling
 
-```
+Visualize and edit trees with [Groot2](https://www.behaviortree.dev/groot/):
+
+```bash
 cd ~/Downloads
+wget <Groot2 AppImage URL>
 chmod +x Groot2-*.AppImage
+./Groot2-*.AppImage
 ```
 
-Run Groot2:
+![Groot screenshot](docs/groot-view.png)
 
-```
-cd ~/Downloads
-./Groot2-*.AppImage 
-```
+---
 
-![gz-view](docs/groot-view.png)
+## Workshop Tasks
 
-## Introduction
-
-This workshop is focused on the `RB-Watcher` robot model, a mobile robot designed for surveillance and  inspection tasks in multiple environments, including electrical substations. The simulation environment is based on a detailed Gazebo world that replicates the conditions of an electrical substation, allowing users to test and validate autonomous navigation and inspection algorithms using the Nav2 stack.
-
-
-## TASK 1: Launch the simulation
-
-The goal is to launch the Gazebo world and the RB-Watcher robot model and verify that everything is working properly.
-
+### Task 1 – Launch the Simulation
 
 Launch the electrical substation world:
 
-```
-ros2 launch robotnik_gazebo_ignition spawn_world.launch.py world_path:=$(ros2 pkg prefix electrical_substation_world)/share/electrical_substation_world/worlds/electrical_substation.world  gui:=true
+```bash
+ros2 launch robotnik_gazebo_ignition spawn_world.launch.py \
+  world_path:=$(ros2 pkg prefix electrical_substation_world)/share/electrical_substation_world/worlds/electrical_substation.world \
+  gui:=true
 ```
 
-TIPs:
- - You can change `gui:=true` to `gui:=false` to launch Gazebo without the graphical interface.
- - You can also modify the `world_path` parameter to load a different world.
- - You can set the environement variable `LOW_PERFORMANCE_SIMULATION` to true to reduce the simulation quality for low performance computers:
- 
-```
+Tips:
+
+- Set `gui:=false` for a headless Gazebo session.
+- Override `world_path` to experiment with alternative scenes.
+- Reduce graphics load on low-powered machines:
+
+```bash
 export LOW_PERFORMANCE_SIMULATION=true
 ```
 
-Launch the RB-Watcher robot model in Gazebo:
-```
-ros2 launch robotnik_gazebo_ignition spawn_robot.launch.py robot:=rbwatcher x:=-19 y:=6 run_rviz:=true
-```
-![rbwatcher-gazebo](docs/world&robot.png)
+Spawn the RB-Watcher robot:
 
-
-TIP: 
- - You can set `run_rviz:=false` to avoid launching RViz automatically.
- - You can change the `x` and `y` parameters to modify the robot's initial position in the world.
-
-Extra: We can spawn multiple robots by changing the `x` and `y` parameters, and the robot_id:
-
-```
-ros2 launch robotnik_gazebo_ignition spawn_robot.launch.py robot:=rbwatcher x:=-19 y:=4 robot_id:=robot_2 run_rviz:=false
+```bash
+ros2 launch robotnik_gazebo_ignition spawn_robot.launch.py \
+  robot:=rbwatcher x:=-19 y:=6 run_rviz:=true
 ```
 
-## TASK 2: Controllers and Sensors
+![Robot in Gazebo](docs/world&robot.png)
 
-The goal is to understand how to control the robot and visualize the sensor data.
+Additional tweaks:
 
-### Robot Controllers
+- Toggle RViz autostart via `run_rviz:=false`.
+- Adjust initial pose with `x`/`y` parameters.
+- Spawn extra robots by providing a unique `robot_id` so that namespaces stay isolated.
 
-Based on ROS2 control Robotnik's skid steering controller.
-
-```
-ros2 topic echo /robot/robotnik_base_control/odom
-```
-
-### Pan-Tilt-Zoom Camera
-
-The control is based on ROS2 control joint trajectory controller.
-
-The video stream can be visualized using `rqt_image_view` or rviz:
-
-```
-ros2 run rqt_image_view rqt_image_view /robot/top_ptz_rgbd_camera/color/image_raw
+```bash
+ros2 launch robotnik_gazebo_ignition spawn_robot.launch.py \
+  robot:=rbwatcher x:=-19 y:=4 robot_id:=robot_2 run_rviz:=false
 ```
 
-### RGB Camera
+---
 
-The video stream can be visualized using `rqt_image_view` or rviz:
+### Task 2 – Controllers and Sensors
 
-```
-ros2 run rqt_image_view rqt_image_view /robot/front_rgbd_camera/color/image_raw
-```
+Inspect command topics and sensor streams:
 
-### 3D LIDAR
+- Base odometry:
 
-The point cloud can be visualized using `rviz`
+  ```bash
+  ros2 topic echo /robot/robotnik_base_control/odom
+  ```
 
-![rviz-3dlidar](docs/rviz-3d-lidar.png)
+- PTZ RGB-D camera (joint trajectory controlled):
 
-### IMU
+  ```bash
+  ros2 run rqt_image_view rqt_image_view /robot/top_ptz_rgbd_camera/color/image_raw
+  ```
 
-```
-ros2 topic echo /robot/imu/data
-```
+- Front RGB camera:
 
-## TASK 3: Basic control
+  ```bash
+  ros2 run rqt_image_view rqt_image_view /robot/front_rgbd_camera/color/image_raw
+  ```
 
-### Teleoperation of the robot base
+- 3D LIDAR point cloud (visualize in RViz):
 
-We can teleoperate the robot using the `teleop_twist_keyboard` package:
+  ![3D Lidar in RViz](docs/rviz-3d-lidar.png)
 
-```
-ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r cmd_vel:=/robot/robotnik_base_control/cmd_vel -p stamped:=true
-```
+- IMU stream:
 
-We can teleoperate the robot using the RVIZ teleop panel:
+  ```bash
+  ros2 topic echo /robot/imu/data
+  ```
 
-![rviz-teleop](docs/rviz-teleop.png)
+---
 
-### Teleoperation of the PTZ camera
+### Task 3 – Basic Control
 
-We can control the PTZ camera using the `joint_trajectory_controller`:
+- Teleoperate the base using keyboard commands:
 
-```
-ros2 run rqt_joint_trajectory_controller rqt_joint_trajectory_controller --ros-args --remap __ns:=/robot
-```
+  ```bash
+  ros2 run teleop_twist_keyboard teleop_twist_keyboard \
+    --ros-args -r cmd_vel:=/robot/robotnik_base_control/cmd_vel -p stamped:=true
+  ```
 
-![rqt-ptz](docs/rqt-joint-trajectory-controller.png)
+- Alternatively, drive from RViz using the teleop panel:
 
-## TASK 4: Mapping
+  ![RViz teleop](docs/rviz-teleop.png)
 
-We can create a 2D map of the environment using the `slam_toolbox` package:
+- Command the PTZ camera with the joint trajectory controller plugin:
 
-First, we need a 2D laser scan from the 3D LIDAR. We can use the `pointcloud_to_laserscan` package to convert the point cloud to a 2D laser scan:   
+  ```bash
+  ros2 run rqt_joint_trajectory_controller rqt_joint_trajectory_controller --ros-args --remap __ns:=/robot
+  ```
 
+  ![PTZ controller](docs/rqt-joint-trajectory-controller.png)
 
-```
-ros2 launch robotnik_simulation_bringup laser_filters.launch.py 
-```
+---
 
-![pc-to-laserscan](docs/pc-to-laserscan.png)
+### Task 4 – Mapping
 
+1. Project the 3D LIDAR into a planar scan:
 
-Then, we can run the `slam_toolbox` node to create the map:
+   ```bash
+   ros2 launch robotnik_simulation_bringup laser_filters.launch.py
+   ```
 
-```
-ros2 launch robotnik_simulation_localization mapping_2d.launch.py
-```
+   ![PointCloud to LaserScan](docs/pc-to-laserscan.png)
 
-![rviz-mapping-2d](docs/mapping-2d.png)
+2. Run `slam_toolbox` and drive the robot to build a 2D map:
 
-Move around the robot using teleoperation to create the map.
+   ```bash
+   ros2 launch robotnik_simulation_localization mapping_2d.launch.py
+   ```
 
-Once the map is created, we can save it using the `map_saver` node:
+   ![SLAM in RViz](docs/mapping-2d.png)
 
-```
-ros2 run nav2_map_server map_saver_cli -f ~/map
-```
+3. Save the resulting occupancy grid:
 
-![map-saver](docs/saved-map.png)
+   ```bash
+   ros2 run nav2_map_server map_saver_cli -f ~/map
+   ```
 
-## TASK 5: Localization & Navigation
+   ![Saved map](docs/saved-map.png)
 
-### Localization
+---
 
-We can localize the robot using the `amcl` package:
+### Task 5 – Localization & Navigation
 
-```
+**Localization**
+
+```bash
 ros2 launch robotnik_simulation_localization localization.launch.py
 ```
-![rviz-localization](docs/localization.png)
 
-Set the initial pose of the robot using the `2D Pose Estimate` tool in RViz.
+![AMCL localization](docs/localization.png)
 
-Move around the robot using teleoperation to verify the localization is working properly.
+Set the initial pose in RViz (2D Pose Estimate) and validate pose tracking while teleoperating the robot.
 
-### Navigation
+**Navigation**
 
-We can navigate the robot using the `nav2` stack:
+Launch Nav2:
 
-```
+```bash
 ros2 launch robotnik_simulation_navigation navigation.launch.py
 ```
 
-![rviz-navigation](docs/navigation.png)
+![Nav2 overview](docs/navigation.png)
 
+Send goals via RViz or CLI:
 
-Send navigation goals using the `2D Nav Goal` tool in RViz or by command line:
-
-```
+```bash
 ros2 action send_goal /robot/navigate_to_pose nav2_msgs/action/NavigateToPose '{
   "pose": {
-    "header": {
-      "frame_id": "robot_map"
-    },
+    "header": {"frame_id": "robot_map"},
     "pose": {
-      "position": {
-        "x": 1.5,
-        "y": 0.5,
-        "z": 0.0
-      },
-      "orientation": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0,
-        "w": 1.0
-      }
+      "position": {"x": 1.5, "y": 0.5, "z": 0.0},
+      "orientation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0}
     }
   }
 }'
 ```
 
-![rviz-nav-goal](docs/navigation-goal.png)
+![Navigation goal](docs/navigation-goal.png)
 
-Create and navigate through multiple waypoints by using the `nav2_waypoint_follower` package:
+Waypoint following examples:
 
-![rviz-waypoints](docs/nav2-waypoints.png)
+Navigate Through Poses
 
-Send the waypoints using the command line:
-
-`Navigate through poses`
-
-```
+```bash
 ros2 action send_goal /robot/navigate_through_poses nav2_msgs/action/NavigateThroughPoses '{
   "poses": [
     {
@@ -293,11 +297,11 @@ ros2 action send_goal /robot/navigate_through_poses nav2_msgs/action/NavigateThr
 }'
 ```
 
-`Navigate through waypoints`
+Follow Waypoints
 
-```
+```bash
 ros2 action send_goal /robot/follow_waypoints nav2_msgs/action/FollowWaypoints '{
-  "number_of_loops": 1,
+  "number_of_loops": 3,
   "poses": [
     {
       "header": { "frame_id": "robot_map" },
@@ -329,58 +333,129 @@ ros2 action send_goal /robot/follow_waypoints nav2_msgs/action/FollowWaypoints '
     }
   ]
 }'
-``` 
-
-
-## TASK 6: Perception
-
-We will use a simple script to detect persons in the RGB camera feed by using OpenCV. See the package `simple_person_detector` for more details.
-
 ```
+
+![Waypoints in RViz](docs/nav2-waypoints.png)
+
+---
+
+### Task 6 – Perception
+
+Start the simple person detector package:
+
+```bash
 ros2 launch simple_person_detector simple_person_detector.launch.py
-``` 
-
-![person-detector](docs/person-detection.png)
-
-The detection status is published as a boolean topic as a `std_msgs/Bool` message and also the bounding boxes are published as `vision_msgs/Detection2DArray` message.
-
 ```
+
+![Person detector](docs/person-detection.png)
+
+Monitor detection results:
+
+```bash
 ros2 topic echo /person_detector/detected
 ros2 topic echo /person_detector/detection_array
 ```
 
-## TASK 7: Person (detection) tracking
+---
 
-We will use a simple script to track persons detected in the previous task by using the PTZ camera. See the package `ptz_tracker` for more details.
+### Task 7 – PTZ Person Tracking
 
+Bring up the PTZ tracker node:
 
-```
+```bash
 ros2 launch ptz_tracker ptz_tracker.launch.py
 ```
 
-This node serves an action server that triggers the PTZ camera to follow the detected person.
+Send a goal to start tracking:
 
-```
-ros2 action send_goal /ptz_tracker/start_tracking ptz_tracker_interfaces/action/TrackTarget "{start: true}"
-```
-
-It follows the person by moving the PTZ camera to keep the detected person in the center of the image until we cancel the action or the person is lost.
-
-
-
-## Bringup all
-
-Launch complete simulation:
-
-```
-ros2 launch robotnik_simulation_bringup bringup_complete.launch.py
+```bash
+ros2 action send_goal /ptz_tracker/start_tracking ptz_tracker_interfaces/action/TrackTarget '{start: true}'
 ```
 
-Launch rviz:
+The PTZ head attempts to keep the detected person centered until the action is canceled or detections stop.
 
-```
- ros2 launch robotnik_simulation_bringup rviz.launch.py
+---
+
+### Task 8 – Autonomous Inspection with Behavior Trees
+
+The example tree implements a patrol-and-track policy:
+
+1. Patrol a navigation route using Nav2 waypoints.
+2. Interrupt patrol when a person is detected.
+3. Delegate to the PTZ tracker while detections persist.
+4. Resume patrol after the person leaves the scene.
+
+![Patrol tree in Groot](docs/groot2-patrol.png)
+
+Start the action server:
+
+```bash
+ros2 launch rbwatcher_behaviors behavior_tree_action_server.launch.py
 ```
 
-![rviz-view](docs/rviz-view.png)
+Submit the default mission:
+
+```bash
+ros2 action send_goal   /execute_behavior_tree   rbwatcher_behaviors/action/ExecuteBehaviorTree   
+'target_pose:
+  header:
+    frame_id: "map"
+  pose:
+    position: {x: 1.0, y: 0.0, z: 0.0}
+    orientation: {z: 0.0, w: 1.0}
+
+target_waypoints:
+  - header:
+      frame_id: "robot_map"
+    pose:
+      position: {x: 0.0, y: 0.0, z: 0.0}
+      orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+  - header:
+      frame_id: "robot_map"
+    pose:
+      position: {x: 6.0, y: 0.0, z: 0.0}
+      orientation: {x: 0.0, y: 0.0, z: -0.707, w: 0.707}
+  - header:
+      frame_id: "robot_map"
+    pose:
+      position: {x: 6.0, y: -6.0, z: 0.0}
+      orientation: {x: 0.0, y: 0.0, z: 1.0, w: 0.0}
+  - header:
+      frame_id: "robot_map"
+    pose:
+      position: {x: 0.0, y: -6.0, z: 0.0}
+      orientation: {x: 0.0, y: 0.0, z: 0.707, w: 0.707}
+
+waypoint_loops: 1
+waypoint_start_index: 0
+tree_xml: ""
+tree_path: "config/default_tree.xml"
+'
+```
+
+![Detection vs patrol](docs/detection-patrol.png)
+
+The `tree_path` can point to custom XML if you author alternative mission plans in Groot.
+
+---
+
+## Bringup Shortcuts
+
+- Full simulation stack:
+
+  ```bash
+  ros2 launch robotnik_simulation_bringup bringup_complete.launch.py
+  ```
+
+- RViz only:
+
+  ```bash
+  ros2 launch robotnik_simulation_bringup rviz.launch.py
+  ```
+
+![RViz overview](docs/rviz-view.png)
+
+---
+
+Happy patrolling! For issues or PRs, open a ticket on the repository and include environment details plus relevant logs.
 
