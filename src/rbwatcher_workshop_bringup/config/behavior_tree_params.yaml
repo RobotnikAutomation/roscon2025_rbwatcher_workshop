@@ -1,0 +1,4 @@
+rbwatcher_behavior_server:
+  ros__parameters:
+    default_tree_path: "__DEFAULT_TREE__"
+    bt_tick_frequency: 10.0
