@@ -223,13 +223,114 @@ ros2 launch robotnik_simulation_navigation navigation.launch.py
 ![rviz-navigation](docs/navigation.png)
 
 
-Send navigation goals using the `2D Nav Goal` tool in RViz.
+Send navigation goals using the `2D Nav Goal` tool in RViz or by command line:
+
+```
+ros2 action send_goal /robot/navigate_to_pose nav2_msgs/action/NavigateToPose '{
+  "pose": {
+    "header": {
+      "frame_id": "robot_map"
+    },
+    "pose": {
+      "position": {
+        "x": 1.5,
+        "y": 0.5,
+        "z": 0.0
+      },
+      "orientation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    }
+  }
+}'
+```
 
 ![rviz-nav-goal](docs/navigation-goal.png)
 
 Create and navigate through multiple waypoints by using the `nav2_waypoint_follower` package:
 
 ![rviz-waypoints](docs/nav2-waypoints.png)
+
+Send the waypoints using the command line:
+
+`Navigate through poses`
+
+```
+ros2 action send_goal /robot/navigate_through_poses nav2_msgs/action/NavigateThroughPoses '{
+  "poses": [
+    {
+      "header": { "frame_id": "robot_map" },
+      "pose": {
+        "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "orientation": { "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 }
+      }
+    },
+    {
+      "header": { "frame_id": "robot_map" },
+      "pose": {
+        "position": { "x": 6.0, "y": 0.0, "z": 0.0 },
+        "orientation": { "x": 0.0, "y": 0.0, "z": -0.707, "w": 0.707 }
+      }
+    },
+    {
+      "header": { "frame_id": "robot_map" },
+      "pose": {
+        "position": { "x": 6.0, "y": -6.0, "z": 0.0 },
+        "orientation": { "x": 0.0, "y": 0.0, "z": 1.0, "w": 0.0 }
+      }
+    },
+    {
+      "header": { "frame_id": "robot_map" },
+      "pose": {
+        "position": { "x": 0.0, "y": -6.0, "z": 0.0 },
+        "orientation": { "x": 0.0, "y": 0.0, "z": 0.707, "w": 0.707 }
+      }
+    }
+  ]
+}'
+```
+
+`Navigate through waypoints`
+
+```
+ros2 action send_goal /robot/follow_waypoints nav2_msgs/action/FollowWaypoints '{
+  "number_of_loops": 1,
+  "poses": [
+    {
+      "header": { "frame_id": "robot_map" },
+      "pose": {
+        "position": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "orientation": { "x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0 }
+      }
+    },
+    {
+      "header": { "frame_id": "robot_map" },
+      "pose": {
+        "position": { "x": 6.0, "y": 0.0, "z": 0.0 },
+        "orientation": { "x": 0.0, "y": 0.0, "z": -0.707, "w": 0.707 }
+      }
+    },
+    {
+      "header": { "frame_id": "robot_map" },
+      "pose": {
+        "position": { "x": 6.0, "y": -6.0, "z": 0.0 },
+        "orientation": { "x": 0.0, "y": 0.0, "z": 1.0, "w": 0.0 }
+      }
+    },
+    {
+      "header": { "frame_id": "robot_map" },
+      "pose": {
+        "position": { "x": 0.0, "y": -6.0, "z": 0.0 },
+        "orientation": { "x": 0.0, "y": 0.0, "z": 0.707, "w": 0.707 }
+      }
+    }
+  ]
+}'
+``` 
+
 
 ## TASK 6: Perception
 
