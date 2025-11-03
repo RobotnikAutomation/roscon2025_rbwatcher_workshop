@@ -396,42 +396,21 @@ ros2 launch rbwatcher_behaviors behavior_tree_action_server.launch.py
 Submit the default mission:
 
 ```bash
-ros2 action send_goal   /execute_behavior_tree   rbwatcher_behaviors/action/ExecuteBehaviorTree   
-'target_pose:
-  header:
-    frame_id: "map"
-  pose:
-    position: {x: 1.0, y: 0.0, z: 0.0}
-    orientation: {z: 0.0, w: 1.0}
-
-target_waypoints:
-  - header:
-      frame_id: "robot_map"
-    pose:
-      position: {x: 0.0, y: 0.0, z: 0.0}
-      orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
-  - header:
-      frame_id: "robot_map"
-    pose:
-      position: {x: 6.0, y: 0.0, z: 0.0}
-      orientation: {x: 0.0, y: 0.0, z: -0.707, w: 0.707}
-  - header:
-      frame_id: "robot_map"
-    pose:
-      position: {x: 6.0, y: -6.0, z: 0.0}
-      orientation: {x: 0.0, y: 0.0, z: 1.0, w: 0.0}
-  - header:
-      frame_id: "robot_map"
-    pose:
-      position: {x: 0.0, y: -6.0, z: 0.0}
-      orientation: {x: 0.0, y: 0.0, z: 0.707, w: 0.707}
-
-waypoint_loops: 1
-waypoint_start_index: 0
-tree_xml: ""
-tree_path: "config/default_tree.xml"
-'
+ros2 action send_goal /execute_behavior_tree rbwatcher_behaviors/action/ExecuteBehaviorTree '{
+  target_waypoints: [
+    { header: { frame_id: "robot_map" }, pose: { position: { x: 0.0, y: 0.0, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: 0.0, w: 1.0 } } },
+    { header: { frame_id: "robot_map" }, pose: { position: { x: 6.0, y: 0.0, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: -0.707, w: 0.707 } } },
+    { header: { frame_id: "robot_map" }, pose: { position: { x: 6.0, y: -6.0, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: -0.707, w: 0.707 } } },
+    { header: { frame_id: "robot_map" }, pose: { position: { x: 0.0, y: -6.0, z: 0.0 }, orientation: { x: 0.0, y: 0.0, z: -0.707, w: 0.707 } } },        
+  ],
+  waypoint_loops: 1,
+  waypoint_start_index: 0,
+  tree_xml: "",
+  tree_path: "config/default_tree.xml"
+}'
 ```
+
+Copy that YAML elsewhere if you want to tweak the waypoint list, loop count, or select an alternate tree.
 
 ![Detection vs patrol](docs/detection-patrol.png)
 
