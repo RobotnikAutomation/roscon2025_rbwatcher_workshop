@@ -49,7 +49,7 @@ The RB-Watcher is a mobile platform designed for persistent inspection and surve
 ```bash
 mkdir -p ~/workspaces/roscon_ws/src
 cd ~/workspaces/roscon_ws/src
-git clone --recurse-submodules -b jazzy-devel https://github.com/RobotnikAutomation/robot_packages.git
+git clone --recurse-submodules -b jazzy-devel https://github.com/RobotnikAutomation/roscon2025_rbwatcher_workshop.git
 ```
 
 Install system dependencies and resolve ROS package requirements:
