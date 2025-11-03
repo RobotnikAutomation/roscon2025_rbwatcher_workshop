@@ -441,8 +441,6 @@ ros2 action send_goal /execute_behavior_tree rbwatcher_behaviors/action/ExecuteB
 }'
 ```
 
-Copy that YAML elsewhere if you want to tweak the waypoint list, loop count, or select an alternate tree.
-
 ![Detection vs patrol](docs/detection-patrol.png)
 
 The `tree_path` can point to custom XML if you author alternative mission plans in Groot.
