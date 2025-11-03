@@ -9,11 +9,13 @@ RB-Watcher ROS 2 digital twin for autonomous inspection at an electrical substat
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Requirements](#requirements)
-3. [Workspace Setup](#workspace-setup)
-4. [Build Instructions](#build-instructions)
-5. [Behavior Tree Tooling](#behavior-tree-tooling)
-6. [Workshop Tasks](#workshop-tasks)
+2. [Workshop Objective](#workshop-objective)
+3. [Requirements](#requirements)
+4. [Workspace Setup](#workspace-setup)
+5. [Build Instructions](#build-instructions)
+6. [Repository Structure](#repository-structure)
+7. [Behavior Tree Tooling](#behavior-tree-tooling)
+9. [Workshop Tasks](#workshop-tasks)
    - [Task 1 – Launch the Simulation](#task-1--launch-the-simulation)
    - [Task 2 – Controllers and Sensors](#task-2--controllers-and-sensors)
    - [Task 3 – Basic Control](#task-3--basic-control)
@@ -22,7 +24,7 @@ RB-Watcher ROS 2 digital twin for autonomous inspection at an electrical substat
    - [Task 6 – Perception](#task-6--perception)
    - [Task 7 – PTZ Person Tracking](#task-7--ptz-person-tracking)
    - [Task 8 – Autonomous Inspection with Behavior Trees](#task-8--autonomous-inspection-with-behavior-trees)
-7. [Bringup Shortcuts](#bringup-shortcuts)
+10. [Open Exercises](#open-exercises)
 
 ---
 
@@ -33,6 +35,12 @@ The RB-Watcher is a mobile platform designed for persistent inspection and surve
 - A Gazebo Harmonic simulation of the RB-Watcher operating in an electrical substation.
 - Launch and configuration assets to exercise Nav2, perception, and PTZ tracking components.
 - A BehaviorTree.CPP action server (`rbwatcher_behaviors`) showcasing patrol-and-track missions using custom tree nodes.
+
+---
+
+## Workshop Objective
+
+The guided exercises build toward a complete autonomous inspection workflow. Participants first stand up simulation, then generate an actionable map, localize and navigate with Nav2, plug in perception, and finally orchestrate everything with BehaviorTree-driven mission logic. By Task 8 you will understand how routing, detection, and PTZ tracking interlock inside a maintainable, modular autonomy stack.
 
 ---
 
@@ -76,9 +84,24 @@ Re-source `install/setup.bash` in new terminals or add it to your shell profile.
 
 ---
 
+## Repository Structure
+
+Key packages in this workspace:
+
+- `robotnik_gazebo_ignition`: Robotnik's Gazebo Harmonic simulation.
+- `electrical_substation_world`: Gazebo Harmonic environment used throughout the workshop.
+- `rbwatcher_description`: URDF/SDF assets, meshes, and robot configuration for RB-Watcher.
+- `rbwatcher_behaviors`: BehaviorTree.CPP action server plus custom Nav2 and PTZ tracker BT nodes.
+- `simple_person_detector`: Simulated perception pipeline that publishes person detections.
+- `ptz_tracker`: PTZ camera controller node that tracks detected persons using a joint trajectory controller.
+
+Refer to each package’s README for deeper details or configuration options.
+
+---
+
 ## Behavior Tree Tooling
 
-Visualize and edit trees with [Groot2](https://www.behaviortree.dev/groot/):
+Visualize and edit trees with [Groot2](https://www.behaviortree.dev/groot/). The snippet below downloads the latest AppImage directly from GitHub releases:
 
 ```bash
 cd ~/Downloads
@@ -132,6 +155,8 @@ Additional tweaks:
 ros2 launch robotnik_gazebo_ignition spawn_robot.launch.py \
   robot:=rbwatcher x:=-19 y:=4 robot_id:=robot_2 run_rviz:=false
 ```
+
+> ⚠️ **Namespace reminder:** All subsequent command snippets assume the default namespace `/robot`. If you launch with a custom `robot_id` such as `robot_2`, replace `/robot` with your namespace (for example `/robot_2`) in every topic or action name that follows.
 
 ---
 
@@ -194,6 +219,8 @@ Inspect command topics and sensor streams:
 
 ### Task 4 – Mapping
 
+*Context:* Nav2’s 2D planners and `slam_toolbox` consume `sensor_msgs/LaserScan`. The helper launch files flatten the robot’s 3D point cloud into a planar scan so SLAM and costmaps stay happy.
+
 1. Project the 3D LIDAR into a planar scan:
 
    ```bash
@@ -221,6 +248,8 @@ Inspect command topics and sensor streams:
 ---
 
 ### Task 5 – Localization & Navigation
+
+*Context:* `NavigateThroughPoses` is a fire-and-forget mission—Nav2 visits each pose once and exits. `FollowWaypoints` suits patrols: it loops, tracks progress, and plays nicely with higher-level supervisors that pause/resume routes.
 
 **Localization**
 
@@ -378,6 +407,8 @@ The PTZ head attempts to keep the detected person centered until the action is c
 
 ### Task 8 – Autonomous Inspection with Behavior Trees
 
+*Context:* You could script the mission in one giant node, but Behavior Trees keep patrol, detection, tracking, and recovery logic modular. They make it easier to visualize state transitions, add fallbacks, and recover from failures.
+
 The example tree implements a patrol-and-track policy:
 
 1. Patrol a navigation route using Nav2 waypoints.
@@ -410,29 +441,32 @@ ros2 action send_goal /execute_behavior_tree rbwatcher_behaviors/action/ExecuteB
 }'
 ```
 
-Copy that YAML elsewhere if you want to tweak the waypoint list, loop count, or select an alternate tree.
-
 ![Detection vs patrol](docs/detection-patrol.png)
 
 The `tree_path` can point to custom XML if you author alternative mission plans in Groot.
 
 ---
 
-## Bringup Shortcuts
+## Open Exercises
 
-- Full simulation stack:
+Ready to extend the workshop on your own? These drills progress from quick Behavior Tree tweaks to full autonomy experiments.
 
-  ```bash
-  ros2 launch robotnik_simulation_bringup bringup_complete.launch.py
-  ```
+### Level 1 – Behavior Tree Tweaks
 
-- RViz only:
+- **Inspection Patrol Remix:** Edit `config/default_tree.xml` in Groot2 so `FollowWaypoints` alternates between two inspection points instead of looping four. Bonus: wrap each waypoint with a `Delay` decorator (10 s) to simulate on-site inspection time.
+- **Detection Hold-Off:** Keep PTZ tracking while detections persist, but only resume patrol after `IsPersonDetected` has been false for 15 s. Combine timing decorators (for example `Delay` or `Timeout`) with a `RetryUntilSuccessful` guard to enforce the cool-down period.
 
-  ```bash
-  ros2 launch robotnik_simulation_bringup rviz.launch.py
-  ```
+### Level 2 – New Behavior Tree Nodes
 
-![RViz overview](docs/rviz-view.png)
+- **Fixed PTZ Inspection:** Implement a `MovePTZToPreset` SyncActionNode that drives the PTZ trajectory controller to a preset (pan = 1.0, tilt = –0.5) and holds for 5 s. Insert it into the main tree so the robot pauses at Waypoint 1, executes the preset scan, then advances to Waypoint 2.
+
+### Level 3 – Perception-Driven Logic
+
+- **Range-Aware Detection:** Use `/person_detector/detection_array` to halt the patrol only when a detection is within 5 m. Extend the Bool condition or craft a new BT condition that checks the reported range before interrupting.
+
+### Level 4 – Navigation & Simulation Challenges
+
+- **Dynamic Obstacles:** Spawn moving obstacles in Gazebo and rerun the patrol. Tune `robotnik_simulation_navigation/config/nav2_params.yaml` (for example `controller_server.max_vel_x` or `global_costmap.inflation_radius`) to make the robot more cautious or assertive and observe the change.
 
 ---
 
